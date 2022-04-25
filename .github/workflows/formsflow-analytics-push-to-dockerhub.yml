@@ -41,24 +41,17 @@ jobs:
         with:
           install: true
       - name: Set version
-        working-directory: .
-        run: |
-          content=`cat package.json`
-          content="${content//'%'/'%25'}"
-          content="${content//$'\n'/'%0A'}"
-          content="${content//$'\r'/'%0D'}"
-          echo "::set-output name=packageJson::$content"
-
-          echo "VERSION=${{fromJson(steps.set_var.outputs.packageJson).version}}" >> $GITHUB_ENV
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
       
-      - run: echo ${{ env.VERSION }}
+      - run: echo ${{ steps.package-version.outputs.current-version }}
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: ${{ matrix.image }}
-          tags: ${{ env.VERSION }}
+          tags: ${{ steps.package-version.outputs.current-version }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v1
