@@ -8,6 +8,10 @@ from .mixins import TimestampMixin
 from .types import MutableDict, PseudoJSON
 from .users import User, Group
 
+from redash.worker import get_job_logger
+
+logger = get_job_logger(__name__)
+
 
 @generic_repr("id", "name", "slug")
 class Organization(TimestampMixin, db.Model):
@@ -39,10 +43,13 @@ class Organization(TimestampMixin, db.Model):
         default_group = self.groups.filter(
             Group.name == "default", Group.type == Group.BUILTIN_GROUP
         ).first()
+        logger.info("Default group found %s", default_group)
         if default_group is None:
+            logger.info("Default group is None")
             default_group = self.groups.filter(
                 Group.name == f'{self.slug}-admin', Group.type == Group.REGULAR_GROUP
             ).one_or_none()
+            logger.info("Default group with admin name found %s", default_group)
         return default_group
 
     @property
