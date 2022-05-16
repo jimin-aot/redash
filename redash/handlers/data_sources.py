@@ -158,12 +158,15 @@ class DataSourceListResource(BaseResource):
         require_fields(req, ("options", "name", "type"))
 
         schema = get_configuration_schema_for_query_runner_type(req["type"])
-        logger.info('schema %s', schema)
+        logger.info('>> Schema %s', schema)
         if schema is None:
             abort(400)
 
         config = ConfigurationContainer(filter_none(req["options"]), schema)
-        logger.info('config %s', config)
+        logger.info('>> Config %s', config)
+        logger.info('>> Config.is_valid() : %s', config.is_valid())
+        logger.info('>> Config Dict %s', config.to_dict())
+        logger.info('>> Config Json %s', config.to_json())
         if not config.is_valid():
             abort(400)
 
