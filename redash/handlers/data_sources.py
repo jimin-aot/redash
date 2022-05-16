@@ -163,10 +163,6 @@ class DataSourceListResource(BaseResource):
             abort(400)
 
         config = ConfigurationContainer(filter_none(req["options"]), schema)
-        logger.info('>> Config %s', config)
-        logger.info('>> Config.is_valid() : %s', config.is_valid())
-        logger.info('>> Config Dict %s', config.to_dict())
-        logger.info('>> Config Json %s', config.to_json())
         if not config.is_valid():
             abort(400)
 
