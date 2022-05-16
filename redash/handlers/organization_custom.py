@@ -67,14 +67,14 @@ class OrganizationResource(BaseResource):
             type=models.Group.REGULAR_GROUP,
         )
 
-        # default_group = Group(
-        #     name="default",
-        #     permissions=Group.DEFAULT_PERMISSIONS,
-        #     org=org,
-        #     type=Group.REGULAR_GROUP,
-        # )
+        default_group = models.Group(
+            name="default",
+            permissions=models.Group.DEFAULT_PERMISSIONS,
+            org=org,
+            type=models.Group.BUILTIN_GROUP,
+        )
 
-        models.db.session.add_all([org, admin_group])
+        models.db.session.add_all([org, admin_group, default_group])
         models.db.session.commit()
 
         user = models.User(
