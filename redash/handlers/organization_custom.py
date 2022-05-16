@@ -62,7 +62,7 @@ class OrganizationResource(BaseResource):
 
         admin_group = models.Group(
             name=f"{org.slug}-admin",
-            permissions=["admin"],
+            permissions=models.Group.DEFAULT_PERMISSIONS,
             org=org,
             type=models.Group.REGULAR_GROUP,
         )
