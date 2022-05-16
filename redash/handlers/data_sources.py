@@ -177,6 +177,7 @@ class DataSourceListResource(BaseResource):
 
             models.db.session.commit()
         except IntegrityError as e:
+            logger.error(e)
             if req["name"] in str(e):
                 abort(
                     400,
