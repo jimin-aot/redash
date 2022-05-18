@@ -77,6 +77,15 @@ class OrganizationResource(BaseResource):
         models.db.session.add_all([org, admin_group])
         models.db.session.commit()
 
+        # Create a system user for accessing through API.
+        system_user = models.User(
+            org=org,
+            name='system',
+            email=None,
+            group_ids=[admin_group.id],
+            api_key=org_payload.get('userApiKey', '')
+        )
+
         user = models.User(
             org=org,
             name=org_payload['userName'],
@@ -85,6 +94,6 @@ class OrganizationResource(BaseResource):
         )
         user.hash_password(org_payload.get('password', ''))
 
-        models.db.session.add(user)
+        models.db.session.add_all([user, system_user])
         models.db.session.commit()
         logger.info("Finished creating Org")
