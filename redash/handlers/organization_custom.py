@@ -81,7 +81,7 @@ class OrganizationResource(BaseResource):
         system_user = models.User(
             org=org,
             name='system',
-            email=None,
+            email=f'system@{org.slug}',
             group_ids=[admin_group.id],
             api_key=org_payload.get('userApiKey', '')
         )
