@@ -90,7 +90,7 @@ class User(
     group_ids = Column(
         "groups", MutableList.as_mutable(postgresql.ARRAY(key_type("Group"))), nullable=True
     )
-    api_key = Column(db.String(40), default=lambda: generate_token(40), unique=True)
+    api_key = Column(db.String(40), default=lambda: generate_token(40), unique=False)
 
     disabled_at = Column(db.DateTime(True), default=None, nullable=True)
     details = Column(

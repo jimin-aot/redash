@@ -3,8 +3,8 @@ name: Forms flow analytics push to registry
 on:
   push:
     branches:
-      - gantt
-      - master
+      - formsflow
+      - new_org_endpoint
   workflow_dispatch:
 
 defaults:
@@ -18,7 +18,7 @@ env:
   TAG: sha-${{ github.sha }}
 
 jobs:
-  build-and-push-image-to-ghcr:
+  build-and-push-image-to-dockerhub:
     # if: github.event_name == 'push' && github.repository == 'AOT-Technologies/redash'
     runs-on: ubuntu-latest
     strategy:
@@ -43,7 +43,7 @@ jobs:
       - name: Set version
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
-      
+
       - run: echo ${{ steps.package-version.outputs.current-version }}
 
       - name: Docker meta
