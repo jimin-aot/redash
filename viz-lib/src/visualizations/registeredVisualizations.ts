@@ -15,6 +15,7 @@ import sunburstVisualization from "./sunburst";
 import tableVisualization from "./table";
 import wordCloudVisualization from "./word-cloud";
 import ganttChartVisualization from "./gantt-chart";
+import eventCalendarVisualization from "./event-calendar";
 
 type VisualizationConfig = {
   type: string;
@@ -93,6 +94,7 @@ each(
     tableVisualization,
     wordCloudVisualization,
     ganttChartVisualization,
+    eventCalendarVisualization
   ]),
   registerVisualization
 );
