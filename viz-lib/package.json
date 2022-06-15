@@ -77,6 +77,10 @@
     "lib"
   ],
   "dependencies": {
+    "@fullcalendar/daygrid": "^5.11.0",
+    "@fullcalendar/react": "^5.11.1",
+    "@fullcalendar/timegrid": "^5.11.0",
+    "@types/lodash": "^4.14.182",
     "axios": "^0.19.2",
     "beautifymarker": "^1.0.7",
     "chroma-js": "^1.3.6",
@@ -92,8 +96,9 @@
     "leaflet": "^1.2.0",
     "leaflet-fullscreen": "^1.0.2",
     "leaflet.markercluster": "^1.1.0",
-    "lodash": "^4.17.10",
-    "moment": "^2.19.3",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.3",
+    "moment-range": "^4.0.2",
     "numeral": "^2.0.6",
     "plotly.js": "1.52.3",
     "react-pivottable": "^0.9.0",
