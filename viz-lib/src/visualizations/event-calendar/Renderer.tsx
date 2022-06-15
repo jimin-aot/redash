@@ -1,62 +1,71 @@
-import React from 'react'
-import FullCalendar from '@fullcalendar/react' // must go before plugins
-import dayGridPlugin from '@fullcalendar/daygrid' // a plugin!
-import timeGridPlugin from '@fullcalendar/timegrid';
+import React, { useCallback, useMemo, useState } from "react";
+import * as moment from "moment";
+import { extendMoment } from "moment-range";
 
-const events = [
-  { title: "All Day Event", start: getDate("YEAR-MONTH-01") },
-  {
-    title: "Long Event",
-    start: getDate("YEAR-MONTH-07"),
-    end: getDate("YEAR-MONTH-10")
-  },
-  {
-    groupId: "999",
-    title: "Repeating Event",
-    start: getDate("YEAR-MONTH-09T16:00:00+00:00")
-  },
-  {
-    groupId: "999",
-    title: "Repeating Event",
-    start: getDate("YEAR-MONTH-16T16:00:00+00:00")
-  },
-  {
-    title: "Conference",
-    start: "YEAR-MONTH-17",
-    end: getDate("YEAR-MONTH-19")
-  },
-  {
-    title: "Meeting",
-    start: getDate("YEAR-MONTH-18T10:30:00+00:00"),
-    end: getDate("YEAR-MONTH-18T12:30:00+00:00")
-  },
-  { title: "Lunch", start: getDate("YEAR-MONTH-18T12:00:00+00:00") },
-  { title: "Birthday Party", start: getDate("YEAR-MONTH-19T07:00:00+00:00") },
-  { title: "Meeting", start: getDate("YEAR-MONTH-18T14:30:00+00:00") },
-  { title: "Happy Hour", start: getDate("YEAR-MONTH-18T17:30:00+00:00") },
-  { title: "Dinner", start: getDate("YEAR-MONTH-18T20:00:00+00:00") }
-];
+import "./Calendar.css";
+import Month from "./components/Month";
+// import { events } from "./events";
+import { RendererPropTypes } from "../prop-types";
 
-function getDate(dayString:any) {
-  const today = new Date();
-  const year = today.getFullYear().toString();
-  let month = (today.getMonth() + 1).toString();
+const extendedMoment = extendMoment(moment);
 
-  if (month.length === 1) {
-    month = "0" + month;
-  }
+export default function Renderer(props: any) {
+  const prevMonth = extendedMoment.default().subtract(1, "months");
+  const lastMonth = extendedMoment.default().endOf("year");
+  const monthRange = extendedMoment.range(prevMonth, lastMonth).snapTo("month");
+  const months = Array.from(monthRange.by("month"));
+  const events = props.data.rows;
 
-  return dayString.replace("YEAR", year).replace("MONTH", month);
-}
+  const days = ["S", "M", "T", "W", "T", "F", "S"];
+  const [hoveredEvent, setHoveredEvent] = useState(null);
 
-export default function Renderer() {
- 
+  const monthEvents: any = useMemo(() => {
+    let monthData: any = {};
+    months.forEach((month: any) => {
+      const data = events.filter(
+        (e: any) =>
+          (extendedMoment.default(e.start_date).year() === month.year() &&
+            extendedMoment.default(e.start_date).month() === month.month()) ||
+          (extendedMoment.default(e.end_date).year() === month.year() &&
+            extendedMoment.default(e.end_date).month() === month.month())
+      );
+      monthData[month.format("MMMM")] = data;
+    });
+    return monthData;
+  }, [months]);
+
   return (
-    <FullCalendar
-      initialView="dayGridMonth"
-      plugins={[dayGridPlugin, timeGridPlugin]}
-      events={events}
-      
-      />
-  )
+    <div className="calendar-wrapper">
+      <div className="calendar">
+        <span className="title">Week 1</span>
+        <span className="title">Week 2</span>
+        <span className="title">Week 3</span>
+        <span className="title">Week 4</span>
+        <span className="title">Week 5</span>
+        <span className="title">Week 6</span>
+        {[1, 2, 3, 4, 5, 6].map(n =>
+          days.map((d, i) => (
+            <div className="week-day" key={`week${n}_${d}_${i}`}>
+              {days[i]}
+            </div>
+          ))
+        )}
+
+        {months.map(month => (
+          <Month
+            month={month}
+            numTasks={Math.floor(Math.random() * (5 - 1)) + 2}
+            key={month.toString()}
+            events={monthEvents ? monthEvents[month.format("MMMM")] : []}
+            setHoveredEvent={setHoveredEvent}
+            hoveredEvent={hoveredEvent}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
+
+// export default Calendar;
+
+Renderer.propTypes = RendererPropTypes;
