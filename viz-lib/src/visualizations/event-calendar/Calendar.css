@@ -9,7 +9,7 @@
 }
 .calendar {
   display: grid;
-  grid-template-columns: repeat(49, var(--gridSize));
+  grid-template-columns: repeat(56, var(--gridSize));
   grid-auto-rows: var(--gridSize);
   position: relative;
   grid-area: calendar;
@@ -21,36 +21,32 @@
 
 .title {
   grid-column: span 7;
-  border-bottom: 1px solid gray;
-  border-top: 2px solid #000000;
+  border-bottom: 1px solid #ccd6eb;
+  border-top: 2px solid #a7bce8;
 }
 
 .title:first-of-type {
-  grid-column: 8/15;
+  grid-column: 15/22;
 }
 
 .month {
-  border: 2px solid #000000;
+  border: 2px solid #a7bce8;
 }
 
 .week-day:first-of-type {
-  grid-column-start: 8;
-}
-
-.day:not(:first-child),
-.day:not(:first-child),
-.week-day:not(:first-child),
-.week-day:not(:last-child) {
-  border-right: 1px solid gray;
+  grid-column-start: 15;
 }
 
 .calendar .month {
   display: grid;
   grid-column: 1/-1;
-  grid-template-columns: repeat(49, var(--gridSize));
+  grid-template-columns: repeat(56, var(--gridSize));
   grid-auto-rows: var(--gridSize);
   position: relative;
   overflow: hidden;
+  /* grid-row-gap: 1px; */
+  justify-content: center;
+  align-items: center;
 }
 
 .calendar * {
@@ -63,29 +59,46 @@
 }
 
 .month-name-column {
-  display: flex;
-  align-items: center;
+  /* display: flex;
+  align-items: center; */
   grid-column: span 7;
-  justify-content: center;
+  /* justify-content: center; */
+  text-align: center;
 }
 
-.month .day {
-  border-bottom: 1px solid gray;
+.month-name-column::after {
+  content: " ";
+  width: 2px;
+  height: 100%;
+  background-color: #a7bce8;
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  grid-column-start: 8;
 }
+
 .month .day:first-child {
-  border-left: 1px solid gray;
+  border-left: 1px solid #ccd6eb;
 }
 .blank-day {
-  background-color: #c7c7c7;
+  background-color: #d2d8e5;
 }
 .day,
 .blank-day {
   height: 100%;
 }
 
-.month-event-item:not(:only-child) {
-  text-indent: -100000px;
+.month-event-item,
+.month-event-item ~ span {
+  border-radius: 5px;
+  padding: 0 0.5em;
 }
+
+/* .month-event-item:not(:only-child) {
+  text-indent: -100000px;
+} */
 .month-event-item:not(:only-child) ~ span {
   opacity: 1 !important;
 }
@@ -93,7 +106,7 @@
 .month-event-item.hovered {
   z-index: 1000 !important;
   text-indent: 0;
-  box-shadow: 3px 3px #6863634a;
+  box-shadow: 3px 3px #6863632b;
 }
 .month-event-item.hovered ~ span {
   opacity: 0 !important;
@@ -105,14 +118,15 @@
 }
 
 .month-event-item {
-  border: 1px solid gray;
+  border: 1px solid #ccd6eb;
+  /* position: relative; */
 }
 
 .title::before,
 .title:last-of-type::after {
   content: " ";
   width: 2px;
-  background-color: #000000;
+  background-color: #a7bce8;
   top: 0;
   bottom: 0;
   display: block;
@@ -125,6 +139,56 @@
 }
 
 .month-name-column,
+.project-name-column,
 .title {
   font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.month-event-item ~ span,
+.month-event-item.hovered {
+  overflow: hidden;
+}
+
+.week-day::after {
+  content: " ";
+  width: 1px;
+  background-color: #a7bce8;
+  top: 0;
+  bottom: 0;
+  display: block;
+  position: absolute;
+  grid-row-start: 2;
+  z-index: 1;
+}
+
+/* .month-event-item:last-of-type::after, */
+.day::after,
+.month-event-item::after {
+  content: " ";
+  height: 1px;
+  background-color: #a7bce8;
+  left: 0;
+  right: 0;
+  display: block;
+  position: absolute;
+  width: 100%;
+  grid-column-start: 8;
+  margin-top: 5px;
+}
+
+.title,
+.week-day,
+.day {
+  text-align: center;
+}
+
+.project-title {
+  grid-column: 8 / 15;
+  grid-row: span 2;
+  text-align: center;
+  font-weight: bold;
+  border-top: 2px solid #a7bce8;
+  border-left: 2px solid #a7bce8;
+  padding-top: 7%;
 }

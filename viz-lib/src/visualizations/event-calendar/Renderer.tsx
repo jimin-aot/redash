@@ -2,14 +2,17 @@ import React, { useCallback, useMemo, useState } from "react";
 import * as moment from "moment";
 import { extendMoment } from "moment-range";
 
-import "./Calendar.css";
 import Month from "./components/Month";
-// import { events } from "./events";
 import { RendererPropTypes } from "../prop-types";
-
 const extendedMoment = extendMoment(moment);
 
+import "./Calendar.css";
+import { EngagementPopup } from "./components/EngagementPopup";
+
 export default function Renderer(props: any) {
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
   const prevMonth = extendedMoment.default().subtract(1, "months");
   const lastMonth = extendedMoment.default().endOf("year");
   const monthRange = extendedMoment.range(prevMonth, lastMonth).snapTo("month");
@@ -18,6 +21,16 @@ export default function Renderer(props: any) {
 
   const days = ["S", "M", "T", "W", "T", "F", "S"];
   const [hoveredEvent, setHoveredEvent] = useState(null);
+
+  const togglePopup = () => {
+    setShowPopup(!showPopup);
+  };
+
+  const handleEventClick = useCallback(event_id => {
+    togglePopup();
+    const event = events.find((e: any) => e.engagement_id === event_id);
+    setSelectedEvent(event);
+  }, []);
 
   const monthEvents: any = useMemo(() => {
     let monthData: any = {};
@@ -37,6 +50,7 @@ export default function Renderer(props: any) {
   return (
     <div className="calendar-wrapper">
       <div className="calendar">
+        <span className="project-title">Projects</span>
         <span className="title">Week 1</span>
         <span className="title">Week 2</span>
         <span className="title">Week 3</span>
@@ -59,13 +73,13 @@ export default function Renderer(props: any) {
             events={monthEvents ? monthEvents[month.format("MMMM")] : []}
             setHoveredEvent={setHoveredEvent}
             hoveredEvent={hoveredEvent}
+            handleEventClick={handleEventClick}
           />
         ))}
       </div>
+      {showPopup && <EngagementPopup event={selectedEvent} togglePopup={togglePopup} />}
     </div>
   );
 }
-
-// export default Calendar;
 
 Renderer.propTypes = RendererPropTypes;
