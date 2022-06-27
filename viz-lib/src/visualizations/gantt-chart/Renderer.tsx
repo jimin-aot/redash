@@ -81,8 +81,6 @@ export default function Renderer({ data, options }: any) {
     series: tasks,
   };
 
-  console.log(chartData);
-
   return (
     <div className="gantt-chart-visualization-container">
       <HighchartsReact

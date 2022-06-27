@@ -24,11 +24,12 @@ export default function Renderer(props: any) {
 
   const togglePopup = () => {
     setShowPopup(!showPopup);
+    setSelectedEvent(null);
   };
 
   const handleEventClick = useCallback(event_id => {
     togglePopup();
-    const event = events.find((e: any) => e.engagement_id === event_id);
+    const event = events.find((e: any) => e.id === event_id);
     setSelectedEvent(event);
   }, []);
 
