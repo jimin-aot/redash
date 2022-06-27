@@ -30,22 +30,30 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
     });
   };
 
-  const eventsData = _.groupBy(prepareEventDates(_.slice(_.orderBy(events, "start_date"))), "project");
+  const engagements = _.filter(events, (e: any) => e.project && e.project !== "null");
+  const engagementsWithoutProject = prepareEventDates(
+    _.filter(events, (e: any) => e.project === "null" || e.project === null)
+  );
 
-  const numTasks = Object.keys(eventsData).length + 1;
+  const eventsData = _.groupBy(prepareEventDates(_.slice(_.orderBy(engagements, "start_date"))), "project");
+
+  const numTasks = Object.keys(eventsData).length + engagementsWithoutProject.length + 1;
 
   const handleMouseOver = (event: any) => {
-    setHoveredEvent(event.engagement_id);
+    setHoveredEvent(event.id);
   };
 
   const handleMouseLeave = () => {
     setHoveredEvent(null);
   };
 
-  const getShortForm = (str: string) => {
-    const matches = str.match(/\b(\w)/g);
-    const acronym = matches?.join("").toUpperCase() || "";
-    return acronym;
+  const getShortForm = (str: string | null) => {
+    if (str && str !== "null" && str !== "undefined") {
+      const matches = str.match(/\b(\w)/g);
+      const acronym = matches?.join("").toUpperCase() || "";
+      return acronym;
+    }
+    return "";
   };
 
   const renderMonthDates = () => [
@@ -58,21 +66,21 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
   ];
 
   const renderProjectNames = () =>
-    _.keys(eventsData).map((projectName: string) => (
+    _.keys(eventsData).map((projectName: string, i: number) => (
       <span
         className="project-name"
         key={projectName}
         title={projectName}
-        style={{ gridColumn: "8 / 15", textAlign: "center" }}>
+        style={{ gridColumn: "8 / 15", textAlign: "center", gridRow: i + 2 }}>
         {getShortForm(projectName)}
       </span>
     ));
 
-  const renderEvents = (projectData: any, projectStart: any, projectName: string) =>
+  const renderEvents = (projectData: any, projectStart: any) =>
     projectData.map((event: any, i: number) => {
       const style = {
         height: "100%",
-        backgroundColor: event.color,
+        backgroundColor: event.color || "#E6E6E6",
         gridColumn: `${1 + Math.abs(projectStart.start_date.date() - event.start_date.date())} / ${2 +
           event.end_date.date() -
           projectStart.start_date.date()}`,
@@ -81,13 +89,15 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
       };
       return (
         <div
-          key={event.engagement_id}
-          className={`month-event-item ${hoveredEvent === event.engagement_id ? "hovered" : ""}`}
+          key={event.id}
+          className={`month-event-item ${hoveredEvent === event.id ? "hovered" : ""}`}
           style={style}
-          title={`${event.title} | ${event.work_type} | ${event.phase}`}
+          title={`${event.title}${event.work_type ? ` | ${event.work_type}` : ""}${
+            event.phase ? ` | ${event.phase}` : ""
+          }`}
           onMouseEnter={() => handleMouseOver(event)}
           onMouseLeave={handleMouseLeave}
-          onClick={() => handleEventClick(event.engagement_id)}>
+          onClick={() => handleEventClick(event.id)}>
           {getShortForm(event.title)}
         </div>
       );
@@ -113,11 +123,30 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
         return (
           <>
             <span style={style} key={projectName}>
-              {renderEvents(projectData, projectStart, projectName)}
+              {renderEvents(projectData, projectStart)}
             </span>
           </>
         );
       }
+    });
+
+  const renderEngagements = () =>
+    engagementsWithoutProject.map((engagement: any, i: number) => {
+      const start = engagement.start_date;
+      const end = engagement.end_date;
+      const duration = 1 + (end.date() - start.date());
+      const style = {
+        gridColumn: `${14 + firstDay + start.date()} / ${15 + firstDay + end.date()}`,
+        display: "grid",
+        gridTemplateColumns: `repeat(${duration}, var(--gridSize))`,
+        gridTemplateRows: "var(--gridSize)",
+        alignItems: "center",
+      };
+      return (
+        <span style={style} key={`no-project-${i}`}>
+          {renderEvents([engagement], engagement)}
+        </span>
+      );
     });
 
   const style = {
@@ -133,6 +162,7 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
       {renderMonthDates()}
       {renderProjectNames()}
       {renderProjects()}
+      {renderEngagements()}
     </div>
   );
 };
