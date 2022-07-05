@@ -1115,6 +1115,8 @@ class Dashboard(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model
 
     @classmethod
     def all(cls, org, group_ids, user_id):
+        logging.info(Dashboard.query.filter(Dashboard.org == org).all())
+
         query = (
             Dashboard.query.options(
                 joinedload(Dashboard.user).load_only(

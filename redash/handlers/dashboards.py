@@ -23,6 +23,10 @@ from redash.serializers import (
 )
 from sqlalchemy.orm.exc import StaleDataError
 
+from redash.worker import get_job_logger
+
+logger = get_job_logger(__name__)
+
 
 # Ordering map for relationships
 order_map = {
@@ -54,6 +58,10 @@ class DashboardListResource(BaseResource):
         search_term = request.args.get("q")
 
         if search_term:
+            logger.info("Org : %s, Group IDs : %s, user id : %s, search tearm : %s", self.current_org,
+                self.current_user.group_ids,
+                self.current_user.id,
+                search_term)
             results = models.Dashboard.search(
                 self.current_org,
                 self.current_user.group_ids,
@@ -61,10 +69,14 @@ class DashboardListResource(BaseResource):
                 search_term,
             )
         else:
+            logger.info("Org : %s, Group IDs : %s, user id : %s ", self.current_org,
+                        self.current_user.group_ids,
+                        self.current_user.id)
+
             results = models.Dashboard.all(
                 self.current_org, self.current_user.group_ids, self.current_user.id
             )
-
+        logger.info("results : %s", results)
         results = filter_by_tags(results, models.Dashboard.tags)
 
         # order results according to passed order parameter,
