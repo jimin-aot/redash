@@ -1,11 +1,11 @@
 name: Forms flow analytics push to registry
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - formsflow
-      - new_org_endpoint
-  workflow_dispatch:
+      - security_fix
 
 defaults:
   run:
@@ -19,7 +19,7 @@ env:
 
 jobs:
   build-and-push-image-to-dockerhub:
-    # if: github.event_name == 'push' && github.repository == 'AOT-Technologies/redash'
+    if: github.event_name == 'push' && github.repository == 'AOT-Technologies/redash'
     runs-on: ubuntu-latest
     strategy:
       matrix:

@@ -1,18 +1,24 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React from "react";
 import { RendererPropTypes } from "@/visualizations/prop-types";
 
 import { groupBy } from "lodash";
+import moment from "moment";
 
 import HighchartsReact from "highcharts-react-official";
 // Import Highcharts
 import Highcharts from "highcharts";
 import highchartsGantt from "highcharts/modules/gantt";
+import chartNoData from "highcharts/modules/no-data-to-display";
 
+chartNoData(Highcharts);
 highchartsGantt(Highcharts);
 
 import "./renderer.less";
 
 function prepareData(data: any) {
+  if (data === undefined || data === null || data.length === 0) {
+    return [[], [""]];
+  }
   const projects = groupBy(data, (item: any) => item.project);
   const series: Array<any> = [];
   let projectIndex = 0;
@@ -44,8 +50,8 @@ function prepareData(data: any) {
 
 export default function Renderer({ data, options }: any) {
   const [tasks, projects] = prepareData(data.rows);
-  const first = tasks[0];
-  const last = tasks[tasks.length - 1];
+  const first = tasks.length > 0 ? tasks[0] : undefined;
+  const last = tasks.length > 0 ? tasks[tasks.length - 1] : undefined;
   const day = 1000 * 60 * 60 * 24;
   const chartData: Highcharts.Options = {
     title: {
@@ -63,8 +69,16 @@ export default function Renderer({ data, options }: any) {
           },
           step: 1,
         },
-        min: first.data[0].start - day * 15,
-        max: last.data[last.data.length - 1].end + day * 15,
+        min: first
+          ? first.data[0].start - day * 15
+          : moment()
+              .subtract(1, "months")
+              .valueOf(),
+        max: last
+          ? last.data[last.data.length - 1].end + day * 15
+          : moment()
+              .add(3, "years")
+              .valueOf(),
         currentDateIndicator: true,
       },
       {
@@ -79,6 +93,12 @@ export default function Renderer({ data, options }: any) {
       categories: projects,
     },
     series: tasks,
+    chart: {
+      showAxes: true,
+    },
+    lang: {
+      noData: "No data available",
+    },
   };
 
   return (
