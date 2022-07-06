@@ -251,24 +251,27 @@ class PostgreSQL(BaseSQLQueryRunner):
         return connection
 
     def run_query(self, query, user):
+        logger.info("run_query %s, %s", query, user)
         connection = self._get_connection()
+        logger.info("connection %s", connection)
         _wait(connection, timeout=10)
 
         cursor = connection.cursor()
-
+        logger.info("cursor %s", cursor)
         try:
             cursor.execute(query)
             _wait(connection)
-
+            logger.info("cursor.description %s", cursor.description)
             if cursor.description is not None:
                 columns = self.fetch_columns(
                     [(i[0], types_map.get(i[1], None)) for i in cursor.description]
                 )
+                logger.info("columns %s", columns)
                 rows = [
                     dict(zip((column["name"] for column in columns), row))
                     for row in cursor
                 ]
-
+                logger.info("rows %s", rows)
                 data = {"columns": columns, "rows": rows}
                 error = None
                 json_data = json_dumps(data, ignore_nan=True, cls=PostgreSQLJSONEncoder)
@@ -306,17 +309,20 @@ class Redshift(PostgreSQL):
         sslrootcert_path = os.path.join(
             os.path.dirname(__file__), "./files/redshift-ca-bundle.crt"
         )
-
-        connection = psycopg2.connect(
-            user=self.configuration.get("user"),
-            password=self.configuration.get("password"),
-            host=self.configuration.get("host"),
-            port=self.configuration.get("port"),
-            dbname=self.configuration.get("dbname"),
-            sslmode=self.configuration.get("sslmode", "prefer"),
-            sslrootcert=sslrootcert_path,
-            async_=True,
-        )
+        try:
+            connection = psycopg2.connect(
+                user=self.configuration.get("user"),
+                password=self.configuration.get("password"),
+                host=self.configuration.get("host"),
+                port=self.configuration.get("port"),
+                dbname=self.configuration.get("dbname"),
+                sslmode=self.configuration.get("sslmode", "prefer"),
+                sslrootcert=sslrootcert_path,
+                async_=True,
+            )
+        except Exception as e:
+            logger.error(e)
+            raise e
 
         return connection
 
