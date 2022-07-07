@@ -49,7 +49,7 @@ function prepareData(data: any) {
 }
 
 export default function Renderer({ data, options }: any) {
-  const [tasks, projects] = prepareData([]);
+  const [tasks, projects] = prepareData(data.rows);
   const first = tasks.length > 0 ? tasks[0] : undefined;
   const last = tasks.length > 0 ? tasks[tasks.length - 1] : undefined;
   const day = 1000 * 60 * 60 * 24;
