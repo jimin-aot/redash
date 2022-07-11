@@ -119,7 +119,8 @@
 
 .month-event-item {
   border: 1px solid #ccd6eb;
-  /* position: relative; */
+  overflow: hidden;
+  word-wrap: normal;
 }
 
 .title::before,
