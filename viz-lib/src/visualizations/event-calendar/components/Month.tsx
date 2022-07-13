@@ -72,7 +72,11 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
         key={projectName}
         title={projectName}
         style={{ gridColumn: "8 / 15", textAlign: "center", gridRow: i + 2 }}>
-        {getShortForm(projectName)}
+        {eventsData[projectName][0].proj_abbr &&
+        eventsData[projectName][0].proj_abbr !== "null" &&
+        eventsData[projectName][0].proj_abbr !== "undefined"
+          ? eventsData[projectName][0].proj_abbr
+          : getShortForm(projectName)}
       </span>
     ));
 
@@ -104,7 +108,7 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
     });
 
   const renderProjects = () =>
-    _.keys(eventsData).map((projectName: string) => {
+    _.keys(eventsData).map((projectName: string, i: number) => {
       const projectData = eventsData[`${projectName}`];
       if (projectData) {
         const projectStart = _.minBy(projectData, "start_date");
@@ -114,6 +118,7 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
           gridColumn: `${14 + firstDay + projectStart.start_date.date()} / ${15 +
             firstDay +
             projectEnd.end_date.date()}`,
+          gridRow: i + 2,
           display: "grid",
           gridTemplateColumns: `repeat(${projectEventDuration} , var(--gridSize))`,
           gridTemplateRows: "var(--gridSize)",
@@ -137,6 +142,7 @@ const Month = ({ month, events, hoveredEvent, setHoveredEvent, handleEventClick 
       const duration = 1 + (end.date() - start.date());
       const style = {
         gridColumn: `${14 + firstDay + start.date()} / ${15 + firstDay + end.date()}`,
+        gridRow: `${2 + Object.keys(eventsData).length + i}`,
         display: "grid",
         gridTemplateColumns: `repeat(${duration}, var(--gridSize))`,
         gridTemplateRows: "var(--gridSize)",
