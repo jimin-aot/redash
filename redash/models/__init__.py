@@ -1203,6 +1203,10 @@ class Dashboard(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model
         "The SQLAlchemy expression for the property above."
         return func.lower(cls.name)
 
+    @classmethod
+    def get_by_id(cls, dashboard_id):
+        return cls.query.filter(cls.id == dashboard_id).one()
+
 
 @generic_repr("id", "name", "type", "query_id")
 class Visualization(TimestampMixin, BelongsToOrgMixin, db.Model):

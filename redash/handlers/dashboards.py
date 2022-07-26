@@ -1,5 +1,7 @@
 from flask import request, url_for
 from funcy import project, partial
+from itsdangerous import URLSafeTimedSerializer
+from redash import settings
 
 from flask_restful import abort
 from redash import models
@@ -210,6 +212,7 @@ class DashboardResource(BaseResource):
         ).serialize()
 
         api_key = models.ApiKey.get_by_object(dashboard)
+        # If the dashboard has api_key then use the default settings; else create a new token with salt.
         if api_key:
             response["public_url"] = url_for(
                 "redash.public_dashboard",
@@ -218,6 +221,18 @@ class DashboardResource(BaseResource):
                 _external=True,
             )
             response["api_key"] = api_key.api_key
+        elif not dashboard.is_draft:
+            # Create a dynamic secret key
+            serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
+            token = {'id': dashboard.id}
+            dynamic_key = serializer.dumps(token, salt=settings.DATASOURCE_SECRET_KEY)
+            response["public_url"] = url_for(
+                "redash.public_dashboard",
+                token=dynamic_key,
+                org_slug=self.current_org.slug,
+                _external=True,
+            )
+            response["api_key"] = dynamic_key
 
         response["can_edit"] = can_modify(dashboard, self.current_user)
 
