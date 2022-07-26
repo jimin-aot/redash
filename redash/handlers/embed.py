@@ -55,6 +55,7 @@ def public_dashboard(token, org_slug=None):
                                                  max_age=int(settings.DASHBOARD_KEY_EXPIRY_PERIOD)).get('id')
                 logger.info('Extracted dashboard id from the token : %s', dashboard_id)
                 dashboard = models.Dashboard.get_by_id(dashboard_id)
+                logger.info('Found dashboard : %s', dashboard)
             except Exception as e:  # noqa: E722
                 logger.error('Error on decoding the token. Invalid Token. %s', e)
 
