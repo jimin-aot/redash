@@ -58,10 +58,10 @@ def public_dashboard(token, org_slug=None):
                 logger.info('Found dashboard : %s', dashboard)
             except Exception as e:  # noqa: E722
                 logger.error('Error on decoding the token. Invalid Token. %s', e)
-
+    logger.info('dashboard >> %s', dashboard)
     if not dashboard:
         abort(404)
-
+    logger.info('recording event >> %s', dashboard)
     record_event(
         current_org,
         current_user,
