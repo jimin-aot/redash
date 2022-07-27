@@ -151,7 +151,7 @@ def get_user_from_api_key(api_key, query_id):
             logger.info('Found user : %s', user)
         except Exception as e:  # noqa: E722
             logger.error('Error on decoding the token. Invalid Token. %s', e)
-    logger.infog('USER--- > %s', user)
+    logger.info('USER--- > %s', user)
     return user
 
 
