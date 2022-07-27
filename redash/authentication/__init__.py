@@ -139,6 +139,7 @@ def get_user_from_api_key(api_key, query_id):
                         list(query.groups.keys()),
                         name="ApiKey: Query {}".format(query.id),
                     )
+    logger.info('user %s, api_key %s', user, api_key)
     if not user and api_key:
         serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
         logger.info('serializer %s', serializer)
