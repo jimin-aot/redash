@@ -115,11 +115,13 @@ def get_user_from_api_key(api_key, query_id):
         return None
 
     user = None
-
+    logger.info('get_user_from_api_key ')
     # TODO: once we switch all api key storage into the ApiKey model, this code will be much simplified
     org = current_org._get_current_object()
+    logger.info('get_user_from_api_key %s', org)
     try:
         user = models.User.get_by_api_key_and_org(api_key, org)
+        logger.info('get_user_from_api_key %s', user)
         if user.is_disabled:
             user = None
     except models.NoResultFound:

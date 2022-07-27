@@ -42,10 +42,11 @@ def embed(query_id, visualization_id, org_slug=None):
 @csp_allows_embeding
 def public_dashboard(token, org_slug=None):
     logger.info('>>>>>>>>>')
-    logger.info('current_user.is_api_user() %s', current_user.is_api_user())
+    logger.info('current_user.is_api_user() %s, %s', current_user, current_user.is_api_user())
     if current_user.is_api_user():
         dashboard = current_user.object
         logger.info('dashboard %s', dashboard)
+        #TODO Change here
     else:
         api_key = get_object(models.ApiKey.get_by_api_key, token)
         logger.info('api_key %s', api_key)

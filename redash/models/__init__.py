@@ -1341,6 +1341,7 @@ class ApiKey(TimestampMixin, GFKBase, db.Model):
 
     @classmethod
     def get_by_api_key(cls, api_key):
+        logger.info('get_by_api_key >>> %s', api_key)
         return cls.query.filter(cls.api_key == api_key, cls.active == True).one()
 
     @classmethod

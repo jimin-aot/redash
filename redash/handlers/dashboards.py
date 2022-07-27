@@ -338,11 +338,14 @@ class PublicDashboardResource(BaseResource):
             abort(400, message="Public URLs are disabled.")
 
         if not isinstance(self.current_user, models.ApiUser):
+            logger.info('get----> %s', self.current_user)
             api_key = get_object_or_404(models.ApiKey.get_by_api_key, token)
+            logger.info('api_key----> %s', api_key)
             dashboard = api_key.object
+            logger.info('dashboard----> %s', dashboard)
         else:
             dashboard = self.current_user.object
-
+        logger.info('dashboard----> 22 %s', dashboard)
         return public_dashboard(dashboard)
 
 
