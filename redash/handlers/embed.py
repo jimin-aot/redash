@@ -3,14 +3,13 @@ from flask import request, abort
 from .authentication import current_org
 from flask_login import current_user, login_required
 from redash import models
-from itsdangerous import URLSafeTimedSerializer
-from redash import settings
 
 from redash.handlers import routes
 from redash.handlers.base import get_object, org_scoped_rule, record_event
 from redash.handlers.static import render_index
 from redash.security import csp_allows_embeding
 from redash.worker import get_job_logger
+from redash.utils.dynamic_key import decode_token
 
 logger = get_job_logger(__name__)
 
@@ -47,6 +46,7 @@ def public_dashboard(token, org_slug=None):
         dashboard = current_user.object
         logger.info('dashboard %s', dashboard)
         #TODO Change here
+
     else:
         api_key = get_object(models.ApiKey.get_by_api_key, token)
         logger.info('api_key %s', api_key)
@@ -55,17 +55,13 @@ def public_dashboard(token, org_slug=None):
             logger.info('dashboard %s', dashboard)
         else:
             # Here if the object is not found using the api_key try to decode the token using salt and see if it's valid
-            serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
-            logger.info('serializer %s', serializer)
-            try:
-                dashboard_id = serializer.loads(token, salt=settings.DATASOURCE_SECRET_KEY,
-                                                 max_age=int(settings.DASHBOARD_KEY_EXPIRY_PERIOD)).get('id')
-                logger.info('dashboard_id %s', dashboard_id)
+            decoded_token = decode_token(token)
+            if decode_token:
+                dashboard_id = decoded_token.get('id')
                 logger.info('Extracted dashboard id from the token : %s', dashboard_id)
                 dashboard = models.Dashboard.get_by_id(dashboard_id)
                 logger.info('Found dashboard : %s', dashboard)
-            except Exception as e:  # noqa: E722
-                logger.error('Error on decoding the token. Invalid Token. %s', e)
+
     logger.info('dashboard >> %s', dashboard)
     if not dashboard:
         abort(404)

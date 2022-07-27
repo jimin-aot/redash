@@ -1,13 +1,12 @@
 from flask import request, url_for
 from funcy import project, partial
-from itsdangerous import URLSafeTimedSerializer
-from redash import settings
 
 from flask_restful import abort
 from redash import models
 from redash.handlers.base import (
     BaseResource,
     get_object_or_404,
+    get_object,
     paginate,
     filter_by_tags,
     order_results as _order_results,
@@ -26,6 +25,8 @@ from redash.serializers import (
 from sqlalchemy.orm.exc import StaleDataError
 
 from redash.worker import get_job_logger
+
+from redash.utils.dynamic_key import generate_token, decode_token
 
 logger = get_job_logger(__name__)
 
@@ -223,9 +224,7 @@ class DashboardResource(BaseResource):
             response["api_key"] = api_key.api_key
         elif not dashboard.is_draft:
             # Create a dynamic secret key
-            serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
-            token = {'id': dashboard.id, 'user': self.current_user.id}
-            dynamic_key = serializer.dumps(token, salt=settings.DATASOURCE_SECRET_KEY)
+            dynamic_key = generate_token(dashboard.id, self.current_user.id)
             response["public_url"] = url_for(
                 "redash.public_dashboard",
                 token=dynamic_key,
@@ -339,13 +338,18 @@ class PublicDashboardResource(BaseResource):
 
         if not isinstance(self.current_user, models.ApiUser):
             logger.info('get----> %s', self.current_user)
-            api_key = get_object_or_404(models.ApiKey.get_by_api_key, token)
+            api_key = get_object(models.ApiKey.get_by_api_key, token)
             logger.info('api_key----> %s', api_key)
-            dashboard = api_key.object
-            logger.info('dashboard----> %s', dashboard)
+            if api_key:
+                dashboard = api_key.object
+            else:
+                decoded_token = decode_token(token)
+                if decoded_token:
+                    dashboard = models.Dashboard.get_by_id(decoded_token.get('id'))
+            logger.info('dashboard-11 ---> %s', dashboard)
         else:
             dashboard = self.current_user.object
-        logger.info('dashboard----> 22 %s', dashboard)
+        logger.info('dashboard 22 ----> %s', dashboard)
         return public_dashboard(dashboard)
 
 
