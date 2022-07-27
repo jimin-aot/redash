@@ -1203,7 +1203,7 @@ class Dashboard(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model
 
     @classmethod
     def get_by_id(cls, dashboard_id):
-        return cls.query.filter(cls.id == dashboard_id).one()
+        return cls.query.filter(cls.id == dashboard_id).one_or_none()
 
 
 @generic_repr("id", "name", "type", "query_id")
