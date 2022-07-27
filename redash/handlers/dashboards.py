@@ -224,7 +224,7 @@ class DashboardResource(BaseResource):
         elif not dashboard.is_draft:
             # Create a dynamic secret key
             serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
-            token = {'id': dashboard.id}
+            token = {'id': dashboard.id, 'user': self.current_user.id}
             dynamic_key = serializer.dumps(token, salt=settings.DATASOURCE_SECRET_KEY)
             response["public_url"] = url_for(
                 "redash.public_dashboard",

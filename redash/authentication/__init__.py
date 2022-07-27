@@ -4,6 +4,7 @@ import logging
 import time
 from datetime import timedelta
 from urllib.parse import urlsplit, urlunsplit
+from itsdangerous import URLSafeTimedSerializer
 
 from flask import jsonify, redirect, request, url_for, session
 from flask_login import LoginManager, login_user, logout_user, user_logged_in
@@ -138,7 +139,19 @@ def get_user_from_api_key(api_key, query_id):
                         list(query.groups.keys()),
                         name="ApiKey: Query {}".format(query.id),
                     )
-
+    if not user and api_key:
+        serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
+        logger.info('serializer %s', serializer)
+        try:
+            user_id = serializer.loads(api_key, salt=settings.DATASOURCE_SECRET_KEY,
+                                            max_age=int(settings.DASHBOARD_KEY_EXPIRY_PERIOD)).get('user')
+            logger.info('user_id %s', user_id)
+            logger.info('Extracted user id from the token : %s', user_id)
+            user = models.User.get_by_id(user_id)
+            logger.info('Found user : %s', user)
+        except Exception as e:  # noqa: E722
+            logger.error('Error on decoding the token. Invalid Token. %s', e)
+    logger.infog('USER--- > %s', user)
     return user
 
 
