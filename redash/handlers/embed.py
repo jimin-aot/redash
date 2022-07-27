@@ -41,18 +41,25 @@ def embed(query_id, visualization_id, org_slug=None):
 @login_required
 @csp_allows_embeding
 def public_dashboard(token, org_slug=None):
+    logger.info('>>>>>>>>>')
+    logger.info('current_user.is_api_user() %s', current_user.is_api_user())
     if current_user.is_api_user():
         dashboard = current_user.object
+        logger.info('dashboard %s', dashboard)
     else:
         api_key = get_object(models.ApiKey.get_by_api_key, token)
+        logger.info('api_key %s', api_key)
         if api_key:
             dashboard = api_key.object
+            logger.info('dashboard %s', dashboard)
         else:
             # Here if the object is not found using the api_key try to decode the token using salt and see if it's valid
             serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
+            logger.info('serializer %s', serializer)
             try:
                 dashboard_id = serializer.loads(token, salt=settings.DATASOURCE_SECRET_KEY,
                                                  max_age=int(settings.DASHBOARD_KEY_EXPIRY_PERIOD)).get('id')
+                logger.info('dashboard_id %s', dashboard_id)
                 logger.info('Extracted dashboard id from the token : %s', dashboard_id)
                 dashboard = models.Dashboard.get_by_id(dashboard_id)
                 logger.info('Found dashboard : %s', dashboard)
