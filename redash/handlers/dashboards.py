@@ -61,10 +61,6 @@ class DashboardListResource(BaseResource):
         search_term = request.args.get("q")
 
         if search_term:
-            logger.info("Org : %s, Group IDs : %s, user id : %s, search tearm : %s", self.current_org,
-                self.current_user.group_ids,
-                self.current_user.id,
-                search_term)
             results = models.Dashboard.search(
                 self.current_org,
                 self.current_user.group_ids,
@@ -72,14 +68,10 @@ class DashboardListResource(BaseResource):
                 search_term,
             )
         else:
-            logger.info("Org : %s, Group IDs : %s, user id : %s ", self.current_org,
-                        self.current_user.group_ids,
-                        self.current_user.id)
-
             results = models.Dashboard.all(
                 self.current_org, self.current_user.group_ids, self.current_user.id
             )
-        logger.info("results : %s", results)
+
         results = filter_by_tags(results, models.Dashboard.tags)
 
         # order results according to passed order parameter,
@@ -337,19 +329,15 @@ class PublicDashboardResource(BaseResource):
             abort(400, message="Public URLs are disabled.")
 
         if not isinstance(self.current_user, models.ApiUser):
-            logger.info('get----> %s', self.current_user)
             api_key = get_object(models.ApiKey.get_by_api_key, token)
-            logger.info('api_key----> %s', api_key)
             if api_key:
                 dashboard = api_key.object
             else:
                 decoded_token = decode_token(token)
                 if decoded_token:
                     dashboard = models.Dashboard.get_by_id(decoded_token.get('id'))
-            logger.info('dashboard-11 ---> %s', dashboard)
         else:
             dashboard = self.current_user.object
-        logger.info('dashboard 22 ----> %s', dashboard)
         return public_dashboard(dashboard)
 
 
