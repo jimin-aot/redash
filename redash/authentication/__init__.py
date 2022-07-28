@@ -14,6 +14,8 @@ from redash.settings.organization import settings as org_settings
 from redash.tasks import record_event
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import Unauthorized
+from redash.utils.dynamic_key import decode_token
+
 
 login_manager = LoginManager()
 logger = logging.getLogger("authentication")
@@ -115,7 +117,6 @@ def get_user_from_api_key(api_key, query_id):
         return None
 
     user = None
-
     # TODO: once we switch all api key storage into the ApiKey model, this code will be much simplified
     org = current_org._get_current_object()
     try:
@@ -136,6 +137,14 @@ def get_user_from_api_key(api_key, query_id):
                         list(query.groups.keys()),
                         name="ApiKey: Query {}".format(query.id),
                     )
+    logger.info('user %s, api_key %s', user, api_key)
+    if not user and api_key:
+        decoded_token = decode_token(api_key)
+        if decoded_token:
+            user_id = decoded_token.get('user')
+            logger.info('Extracted user id from the token : %s', user_id)
+            user = models.User.get_by_id(user_id)
+            logger.info('Found user : %s', user)
 
     return user
 

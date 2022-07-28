@@ -6,6 +6,7 @@ from redash import models
 from redash.handlers.base import (
     BaseResource,
     get_object_or_404,
+    get_object,
     paginate,
     filter_by_tags,
     order_results as _order_results,
@@ -22,6 +23,12 @@ from redash.serializers import (
     public_dashboard,
 )
 from sqlalchemy.orm.exc import StaleDataError
+
+from redash.worker import get_job_logger
+
+from redash.utils.dynamic_key import generate_token, decode_token
+
+logger = get_job_logger(__name__)
 
 
 # Ordering map for relationships
@@ -198,6 +205,7 @@ class DashboardResource(BaseResource):
         ).serialize()
 
         api_key = models.ApiKey.get_by_object(dashboard)
+        # If the dashboard has api_key then use the default settings; else create a new token with salt.
         if api_key:
             response["public_url"] = url_for(
                 "redash.public_dashboard",
@@ -206,6 +214,16 @@ class DashboardResource(BaseResource):
                 _external=True,
             )
             response["api_key"] = api_key.api_key
+        elif not dashboard.is_draft:
+            # Create a dynamic secret key
+            dynamic_key = generate_token(dashboard.id, self.current_user.id)
+            response["public_url"] = url_for(
+                "redash.public_dashboard",
+                token=dynamic_key,
+                org_slug=self.current_org.slug,
+                _external=True,
+            )
+            response["api_key"] = dynamic_key
 
         response["can_edit"] = can_modify(dashboard, self.current_user)
 
@@ -311,11 +329,15 @@ class PublicDashboardResource(BaseResource):
             abort(400, message="Public URLs are disabled.")
 
         if not isinstance(self.current_user, models.ApiUser):
-            api_key = get_object_or_404(models.ApiKey.get_by_api_key, token)
-            dashboard = api_key.object
+            api_key = get_object(models.ApiKey.get_by_api_key, token)
+            if api_key:
+                dashboard = api_key.object
+            else:
+                decoded_token = decode_token(token)
+                if decoded_token:
+                    dashboard = models.Dashboard.get_by_id(decoded_token.get('id'))
         else:
             dashboard = self.current_user.object
-
         return public_dashboard(dashboard)
 
 

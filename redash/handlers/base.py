@@ -79,6 +79,14 @@ def get_object_or_404(fn, *args, **kwargs):
     return rv
 
 
+def get_object(fn, *args, **kwargs):
+    try:
+        rv = fn(*args, **kwargs)
+    except NoResultFound:
+        rv = None
+    return rv
+
+
 def paginate(query_set, page, page_size, serializer, **kwargs):
     count = query_set.count()
 
