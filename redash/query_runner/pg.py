@@ -255,9 +255,11 @@ class PostgreSQL(BaseSQLQueryRunner):
         _wait(connection, timeout=10)
 
         cursor = connection.cursor()
+
         try:
             cursor.execute(query)
             _wait(connection)
+
             if cursor.description is not None:
                 columns = self.fetch_columns(
                     [(i[0], types_map.get(i[1], None)) for i in cursor.description]
@@ -266,6 +268,7 @@ class PostgreSQL(BaseSQLQueryRunner):
                     dict(zip((column["name"] for column in columns), row))
                     for row in cursor
                 ]
+
                 data = {"columns": columns, "rows": rows}
                 error = None
                 json_data = json_dumps(data, ignore_nan=True, cls=PostgreSQLJSONEncoder)
@@ -303,6 +306,7 @@ class Redshift(PostgreSQL):
         sslrootcert_path = os.path.join(
             os.path.dirname(__file__), "./files/redshift-ca-bundle.crt"
         )
+
         connection = psycopg2.connect(
             user=self.configuration.get("user"),
             password=self.configuration.get("password"),
