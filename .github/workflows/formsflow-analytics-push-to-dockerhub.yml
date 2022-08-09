@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - formsflow
+      - security_fix
 
 defaults:
   run:

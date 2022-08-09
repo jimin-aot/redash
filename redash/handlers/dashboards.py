@@ -199,6 +199,7 @@ class DashboardResource(BaseResource):
         else:
             fn = models.Dashboard.get_by_id_and_org
 
+        return_dynamic_key = request.args.get("return_dynamic_key", "false").lower() == 'true'
         dashboard = get_object_or_404(fn, dashboard_id, self.current_org)
         response = DashboardSerializer(
             dashboard, with_widgets=True, user=self.current_user
@@ -214,7 +215,8 @@ class DashboardResource(BaseResource):
                 _external=True,
             )
             response["api_key"] = api_key.api_key
-        elif not dashboard.is_draft:
+        elif not dashboard.is_draft and return_dynamic_key:
+            logger.info("self.current_user.is_api_user() : %s", self.current_user.is_api_user())
             # Create a dynamic secret key
             dynamic_key = generate_token(dashboard.id, self.current_user.id)
             response["public_url"] = url_for(
