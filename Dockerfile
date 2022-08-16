@@ -57,6 +57,7 @@ RUN apt-get update && \
     freetds-dev \
     libsasl2-dev \
     unzip \
+    Cython \
     libsasl2-modules-gssapi-mit && \
   # MSSQL ODBC Driver:
   curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
