@@ -1,12 +1,13 @@
 name: Forms flow analytics push to registry
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - formsflow
       - vanity
-
+      - security_fix
+  workflow_dispatch:
+  
 defaults:
   run:
     shell: bash
