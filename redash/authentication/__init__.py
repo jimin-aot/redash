@@ -229,6 +229,7 @@ def log_user_logged_in(app, user):
 @login_manager.unauthorized_handler
 def redirect_to_login():
     logger.info("Inside unauthorized handler. redirect_to_login -- > %s -- %s", request.is_xhr, request.path)
+    logger.info("Request headers %s", dict(request.headers))
 
     if request.is_xhr or "/api/" in request.path:
         response = jsonify(
@@ -237,7 +238,7 @@ def redirect_to_login():
         response.status_code = 404
         return response
     logger.info("request.url -- > %s ", request.url)
-    login_url = get_login_url(next=request.url, external=False)
+    login_url = get_login_url(next=request.base_url, external=False)
     logger.info("login_url -- > %s ", login_url)
     return redirect(login_url)
 
