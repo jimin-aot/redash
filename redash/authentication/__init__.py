@@ -31,7 +31,9 @@ def get_login_url(external=False, next="/"):
         )
     else:
         logger.info("getting login URL")
-        login_url = url_for("redash.login", next=next, _external=external)
+        host_url = settings.HOST
+        next_url = f'{host_url}/{request.full_path}' if not external else next
+        login_url = url_for("redash.login", next=next_url, _external=external)
         logger.info("Found login URL : %s", login_url)
 
     return login_url
