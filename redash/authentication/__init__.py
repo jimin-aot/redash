@@ -21,7 +21,8 @@ login_manager = LoginManager()
 logger = logging.getLogger("authentication")
 
 
-def get_login_url(external=False, next="/"):
+def get_login_url(external=False, next="/", is_redirect_to_login=False):
+    logger.info("Inside get_login_url -- > %s, %s ", external, next)
     if settings.MULTI_ORG and current_org == None:
         login_url = "/"
     elif settings.MULTI_ORG:
@@ -29,7 +30,14 @@ def get_login_url(external=False, next="/"):
             "redash.login", org_slug=current_org.slug, next=next, _external=external
         )
     else:
-        login_url = url_for("redash.login", next=next, _external=external)
+        logger.info("getting login URL")
+        host_url = settings.HOST
+        if is_redirect_to_login:
+            next_url = f'{host_url}/{request.full_path}' if not external else next
+        else:
+            next_url = next
+        login_url = url_for("redash.login", next=next_url, _external=external)
+        logger.info("Found login URL : %s", login_url)
 
     return login_url
 
@@ -225,15 +233,19 @@ def log_user_logged_in(app, user):
 
 @login_manager.unauthorized_handler
 def redirect_to_login():
+    logger.info("Inside unauthorized handler. redirect_to_login -- > %s -- %s", request.is_xhr, request.path)
+    logger.info("Request headers %s", dict(request.headers))
+
     if request.is_xhr or "/api/" in request.path:
         response = jsonify(
             {"message": "Couldn't find resource. Please login and try again."}
         )
         response.status_code = 404
         return response
+    logger.info("request.url -- > %s ", request.url)
+    login_url = get_login_url(next=request.base_url, external=False, is_redirect_to_login=True)
 
-    login_url = get_login_url(next=request.url, external=False)
-
+    logger.info("login_url -- > %s ", login_url)
     return redirect(login_url)
 
 

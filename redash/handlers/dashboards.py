@@ -198,7 +198,6 @@ class DashboardResource(BaseResource):
             fn = models.Dashboard.get_by_slug_and_org
         else:
             fn = models.Dashboard.get_by_id_and_org
-
         return_dynamic_key = request.args.get("return_dynamic_key", "false").lower() == 'true'
         dashboard = get_object_or_404(fn, dashboard_id, self.current_org)
         response = DashboardSerializer(
