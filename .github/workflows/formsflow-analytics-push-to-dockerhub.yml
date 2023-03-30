@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - formsflow
-      - vanity
-      - security_fix
+      - refresh_param
   workflow_dispatch:
   
 defaults:

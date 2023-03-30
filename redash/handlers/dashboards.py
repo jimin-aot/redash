@@ -28,6 +28,10 @@ from redash.worker import get_job_logger
 
 from redash.utils.dynamic_key import generate_token, decode_token
 
+from requests.models import PreparedRequest
+from redash import settings
+
+
 logger = get_job_logger(__name__)
 
 
@@ -206,24 +210,33 @@ class DashboardResource(BaseResource):
 
         api_key = models.ApiKey.get_by_object(dashboard)
         # If the dashboard has api_key then use the default settings; else create a new token with salt.
+        logger.info("Building public URL")
+        refresh_param = f"refresh={settings.DASHBOARD_REFRESH_PERIOD}"
         if api_key:
-            response["public_url"] = url_for(
+            dashboard_url = url_for(
                 "redash.public_dashboard",
                 token=api_key.api_key,
                 org_slug=self.current_org.slug,
                 _external=True,
             )
+            dashboard_url += f"&{refresh_param}" if "?" in dashboard_url else f"?{refresh_param}"
+            logger.info("Building public URL %s ", dashboard_url)
+            response["public_url"] = dashboard_url
             response["api_key"] = api_key.api_key
         elif not dashboard.is_draft and return_dynamic_key:
             logger.info("self.current_user.is_api_user() : %s", self.current_user.is_api_user())
             # Create a dynamic secret key
             dynamic_key = generate_token(dashboard.id, self.current_user.id)
-            response["public_url"] = url_for(
+            dashboard_url = url_for(
                 "redash.public_dashboard",
                 token=dynamic_key,
                 org_slug=self.current_org.slug,
                 _external=True,
             )
+            logger.info("Building public URL %s ", dashboard_url)
+            dashboard_url += f"&{refresh_param}" if "?" in dashboard_url else f"?{refresh_param}"
+            logger.info("Building public URL %s ", dashboard_url)
+            response["public_url"] = dashboard_url
             response["api_key"] = dynamic_key
 
         response["can_edit"] = can_modify(dashboard, self.current_user)
