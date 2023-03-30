@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - formsflow
-      - refresh_param
   workflow_dispatch:
   
 defaults:
