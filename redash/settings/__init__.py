@@ -538,6 +538,3 @@ BLOCKED_DOMAINS = set_from_string(os.environ.get("REDASH_BLOCKED_DOMAINS", "qq.c
 
 # Dashboard dynamic key expiry period, in seconds. Default is 5 minutes.
 DASHBOARD_KEY_EXPIRY_PERIOD = int(os.environ.get("DASHBOARD_KEY_EXPIRY_PERIOD", 5*60))
-
-# Dashboard refresh period, in seconds. Default is 1 minute.
-DASHBOARD_REFRESH_PERIOD = int(os.environ.get("DASHBOARD_REFRESH_PERIOD", 60))
