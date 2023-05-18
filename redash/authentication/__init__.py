@@ -21,7 +21,7 @@ login_manager = LoginManager()
 logger = logging.getLogger("authentication")
 
 
-def get_login_url(external=False, next="/"):
+def get_login_url(external=False, next="/", is_redirect_to_login=False):
     logger.info("Inside get_login_url -- > %s, %s ", external, next)
     if settings.MULTI_ORG and current_org == None:
         login_url = "/"
@@ -32,7 +32,10 @@ def get_login_url(external=False, next="/"):
     else:
         logger.info("getting login URL")
         host_url = settings.HOST
-        next_url = f'{host_url}/{request.full_path}' if not external else next
+        if is_redirect_to_login:
+            next_url = f'{host_url}/{request.full_path}' if not external else next
+        else:
+            next_url = next
         login_url = url_for("redash.login", next=next_url, _external=external)
         logger.info("Found login URL : %s", login_url)
 
