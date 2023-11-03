@@ -91,7 +91,7 @@ RUN apt-get update && apt-get install -y build-essential cmake
 
 # We first copy only the requirements file, to avoid rebuilding on every file change.
 COPY requirements_all_ds.txt ./
-RUN if [ "x$skip_ds_deps" = "x" ] ; then pip install -r requirements_all_ds.txt ; else echo "Skipping pip install -r requirements_all_ds.txt" ; fi
+RUN pip install -r requirements_all_ds.txt
 
 COPY requirements_bundles.txt requirements_dev.txt ./
 RUN if [ "x$skip_dev_deps" = "x" ] ; then pip install -r requirements_dev.txt ; fi
