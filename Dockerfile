@@ -84,7 +84,10 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PIP_NO_CACHE_DIR=1
 
 # rollback pip version to avoid legacy resolver problem
-RUN pip install pip==20.2.4;
+# RUN pip install pip==20.2.4;
+RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools
+
 
 # Install cmake
 RUN apt-get update && apt-get install -y build-essential cmake
