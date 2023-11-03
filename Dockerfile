@@ -25,7 +25,7 @@ COPY --chown=redash client /frontend/client
 COPY --chown=redash webpack.config.js /frontend/
 RUN if [ "x$skip_frontend_build" = "x" ] ; then npm run build; else mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html; fi
 
-FROM --platform=linux/amd64 python:3.9-slim-buster
+FROM --platform=linux/amd64 python:3.7-slim-buster
 
 EXPOSE 5000
 
@@ -84,18 +84,12 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PIP_NO_CACHE_DIR=1
 
 # rollback pip version to avoid legacy resolver problem
-# RUN pip install pip==20.2.4;
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
-
-
-# Install cmake
-RUN apt-get update && apt-get install -y build-essential cmake
+RUN pip install pip==20.2.4;
 
 # We first copy only the requirements file, to avoid rebuilding on every file change.
 COPY requirements_all_ds.txt ./
 RUN if [ "x$skip_ds_deps" = "x" ] ; then pip install -r requirements_all_ds.txt ; else echo "Skipping pip install -r requirements_all_ds.txt" ; fi
-#
+
 COPY requirements_bundles.txt requirements_dev.txt ./
 RUN if [ "x$skip_dev_deps" = "x" ] ; then pip install -r requirements_dev.txt ; fi
 
