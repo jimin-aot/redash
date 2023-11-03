@@ -87,8 +87,7 @@ ENV PIP_NO_CACHE_DIR=1
 RUN pip install pip==20.2.4;
 
 # Install cmake
-RUN apt-get update && apt-get install -y cmake
-
+RUN apt-get update && apt-get install -y build-essential cmake
 
 # We first copy only the requirements file, to avoid rebuilding on every file change.
 COPY requirements_all_ds.txt ./
