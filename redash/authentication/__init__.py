@@ -5,39 +5,28 @@ import time
 from datetime import timedelta
 from urllib.parse import urlsplit, urlunsplit
 
-from flask import jsonify, redirect, request, url_for, session
+from flask import jsonify, redirect, request, session, url_for
 from flask_login import LoginManager, login_user, logout_user, user_logged_in
+from sqlalchemy.orm.exc import NoResultFound
+from werkzeug.exceptions import Unauthorized
+
 from redash import models, settings
 from redash.authentication import jwt_auth
 from redash.authentication.org_resolving import current_org
 from redash.settings.organization import settings as org_settings
 from redash.tasks import record_event
-from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.exceptions import Unauthorized
-from redash.utils.dynamic_key import decode_token
-
 
 login_manager = LoginManager()
 logger = logging.getLogger("authentication")
 
 
-def get_login_url(external=False, next="/", is_redirect_to_login=False):
-    logger.info("Inside get_login_url -- > %s, %s ", external, next)
-    if settings.MULTI_ORG and current_org == None:
+def get_login_url(external=False, next="/"):
+    if settings.MULTI_ORG and current_org == None:  # noqa: E711
         login_url = "/"
     elif settings.MULTI_ORG:
-        login_url = url_for(
-            "redash.login", org_slug=current_org.slug, next=next, _external=external
-        )
+        login_url = url_for("redash.login", org_slug=current_org.slug, next=next, _external=external)
     else:
-        logger.info("getting login URL")
-        host_url = settings.HOST
-        if is_redirect_to_login:
-            next_url = f'{host_url}/{request.full_path}' if not external else next
-        else:
-            next_url = next
-        login_url = url_for("redash.login", next=next_url, _external=external)
-        logger.info("Found login URL : %s", login_url)
+        login_url = url_for("redash.login", next=next, _external=external)
 
     return login_url
 
@@ -78,11 +67,7 @@ def request_loader(request):
     elif settings.AUTH_TYPE == "api_key":
         user = api_key_load_user_from_request(request)
     else:
-        logger.warning(
-            "Unknown authentication type ({}). Using default (HMAC).".format(
-                settings.AUTH_TYPE
-            )
-        )
+        logger.warning("Unknown authentication type ({}). Using default (HMAC).".format(settings.AUTH_TYPE))
         user = hmac_load_user_from_request(request)
 
     if org_settings["auth_jwt_login_enabled"] and user is None:
@@ -125,6 +110,7 @@ def get_user_from_api_key(api_key, query_id):
         return None
 
     user = None
+
     # TODO: once we switch all api key storage into the ApiKey model, this code will be much simplified
     org = current_org._get_current_object()
     try:
@@ -145,14 +131,6 @@ def get_user_from_api_key(api_key, query_id):
                         list(query.groups.keys()),
                         name="ApiKey: Query {}".format(query.id),
                     )
-    logger.info('user %s, api_key %s', user, api_key)
-    if not user and api_key:
-        decoded_token = decode_token(api_key)
-        if decoded_token:
-            user_id = decoded_token.get('user')
-            logger.info('Extracted user id from the token : %s', user_id)
-            user = models.User.get_by_id(user_id)
-            logger.info('Found user : %s', user)
 
     return user
 
@@ -209,6 +187,10 @@ def jwt_token_load_user_from_request(request):
     if not payload:
         return
 
+    if "email" not in payload:
+        logger.info("No email field in token, refusing to login")
+        return
+
     try:
         user = models.User.get_by_email_and_org(payload["email"], org)
     except models.NoResultFound:
@@ -233,26 +215,19 @@ def log_user_logged_in(app, user):
 
 @login_manager.unauthorized_handler
 def redirect_to_login():
-    logger.info("Inside unauthorized handler. redirect_to_login -- > %s -- %s", request.is_xhr, request.path)
-    logger.info("Request headers %s", dict(request.headers))
+    is_xhr = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if is_xhr or "/api/" in request.path:
+        return {"message": "Couldn't find resource. Please login and try again."}, 404
 
-    if request.is_xhr or "/api/" in request.path:
-        response = jsonify(
-            {"message": "Couldn't find resource. Please login and try again."}
-        )
-        response.status_code = 404
-        return response
-    logger.info("request.url -- > %s ", request.url)
-    login_url = get_login_url(next=request.base_url, external=False, is_redirect_to_login=True)
+    login_url = get_login_url(next=request.url, external=False)
 
-    logger.info("login_url -- > %s ", login_url)
     return redirect(login_url)
 
 
 def logout_and_redirect_to_index():
     logout_user()
 
-    if settings.MULTI_ORG and current_org == None:
+    if settings.MULTI_ORG and current_org == None:  # noqa: E711
         index_url = "/"
     elif settings.MULTI_ORG:
         index_url = url_for("redash.index", org_slug=current_org.slug, _external=False)
@@ -263,13 +238,10 @@ def logout_and_redirect_to_index():
 
 
 def init_app(app):
-    from redash.authentication import (
-        saml_auth,
-        remote_user_auth,
-        ldap_auth,
+    from redash.authentication import ldap_auth, remote_user_auth, saml_auth
+    from redash.authentication.google_oauth import (
+        create_google_oauth_blueprint,
     )
-
-    from redash.authentication.google_oauth import create_google_oauth_blueprint
 
     login_manager.init_app(app)
     login_manager.anonymous_user = models.AnonymousUser
@@ -283,7 +255,12 @@ def init_app(app):
     from redash.security import csrf
 
     # Authlib's flask oauth client requires a Flask app to initialize
-    for blueprint in [create_google_oauth_blueprint(app), saml_auth.blueprint, remote_user_auth.blueprint, ldap_auth.blueprint, ]:
+    for blueprint in [
+        create_google_oauth_blueprint(app),
+        saml_auth.blueprint,
+        remote_user_auth.blueprint,
+        ldap_auth.blueprint,
+    ]:
         csrf.exempt(blueprint)
         app.register_blueprint(blueprint)
 
