@@ -28,11 +28,11 @@ from redash.handlers.data_sources import (
     DataSourceTestResource,
     DataSourceTypeListResource,
 )
-from redash.handlers.databricks import (
-    DatabricksDatabaseListResource,
-    DatabricksSchemaResource,
-    DatabricksTableColumnListResource,
-)
+# from redash.handlers.databricks import (
+#     DatabricksDatabaseListResource,
+#     DatabricksSchemaResource,
+#     DatabricksTableColumnListResource,
+# )
 from redash.handlers.destinations import (
     DestinationListResource,
     DestinationResource,
@@ -145,15 +145,15 @@ api.add_org_resource(
 api.add_org_resource(DataSourceTypeListResource, "/api/data_sources/types", endpoint="data_source_types")
 api.add_org_resource(DataSourceListResource, "/api/data_sources", endpoint="data_sources")
 api.add_org_resource(DataSourceSchemaResource, "/api/data_sources/<data_source_id>/schema")
-api.add_org_resource(DatabricksDatabaseListResource, "/api/databricks/databases/<data_source_id>")
-api.add_org_resource(
-    DatabricksSchemaResource,
-    "/api/databricks/databases/<data_source_id>/<database_name>/tables",
-)
-api.add_org_resource(
-    DatabricksTableColumnListResource,
-    "/api/databricks/databases/<data_source_id>/<database_name>/columns/<table_name>",
-)
+# api.add_org_resource(DatabricksDatabaseListResource, "/api/databricks/databases/<data_source_id>")
+# api.add_org_resource(
+#     DatabricksSchemaResource,
+#     "/api/databricks/databases/<data_source_id>/<database_name>/tables",
+# )
+# api.add_org_resource(
+#     DatabricksTableColumnListResource,
+#     "/api/databricks/databases/<data_source_id>/<database_name>/columns/<table_name>",
+# )
 api.add_org_resource(DataSourcePauseResource, "/api/data_sources/<data_source_id>/pause")
 api.add_org_resource(DataSourceTestResource, "/api/data_sources/<data_source_id>/test")
 api.add_org_resource(DataSourceResource, "/api/data_sources/<data_source_id>", endpoint="data_source")

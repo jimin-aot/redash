@@ -20,11 +20,12 @@ COPY --chown=redash scripts /frontend/scripts
 ARG code_coverage
 ENV BABEL_ENV=${code_coverage:+test}
 
-RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn --frozen-lockfile --network-concurrency 1; fi
+RUN yarn --frozen-lockfile --network-concurrency 1
 
 COPY --chown=redash client /frontend/client
 COPY --chown=redash webpack.config.js /frontend/
-RUN if [ "x$skip_frontend_build" = "x" ] ; then yarn build; else mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html; fi
+# Use `yarn run` to ensure the locally installed webpack is used
+RUN yarn clean && yarn build:viz && NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production yarn run webpack && mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html
 
 FROM python:3.8-slim-bookworm
 
@@ -43,7 +44,7 @@ RUN apt-get update && \
   libffi-dev \
   sudo \
   git-core \
-  # Kerberos, needed for MS SQL Python driver to compile on arm64
+  # Kerberos, needed for MS SQL Python driver to compile
   libkrb5-dev \
   # Postgres client
   libpq-dev \
@@ -60,24 +61,6 @@ RUN apt-get update && \
   libsasl2-modules-gssapi-mit && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
-
-
-ARG TARGETPLATFORM
-ARG databricks_odbc_driver_url=https://databricks-bi-artifacts.s3.us-east-2.amazonaws.com/simbaspark-drivers/odbc/2.6.26/SimbaSparkODBC-2.6.26.1045-Debian-64bit.zip
-RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-  curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
-  && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-  && apt-get update \
-  && ACCEPT_EULA=Y apt-get install  -y --no-install-recommends msodbcsql17 \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* \
-  && curl "$databricks_odbc_driver_url" --location --output /tmp/simba_odbc.zip \
-  && chmod 600 /tmp/simba_odbc.zip \
-  && unzip /tmp/simba_odbc.zip -d /tmp/simba \
-  && dpkg -i /tmp/simba/*.deb \
-  && printf "[Simba]\nDriver = /opt/simba/spark/lib/64/libsparkodbc_sb64.so" >> /etc/odbcinst.ini \
-  && rm /tmp/simba_odbc.zip \
-  && rm -rf /tmp/simba; fi
 
 WORKDIR /app
 

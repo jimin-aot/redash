@@ -12,8 +12,6 @@ defaults:
     shell: bash
     working-directory: .
 
-env:
-
 jobs:
   build-and-push-image-to-dockerhub:
     if: github.repository == 'AOT-Technologies/redash'
