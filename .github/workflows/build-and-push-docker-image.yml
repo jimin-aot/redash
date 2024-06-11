@@ -1,0 +1,70 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - debug/deployment-permissions
+
+defaults:
+  run:
+    shell: bash
+    working-directory: .
+
+jobs:
+  build-and-push-image-to-dockerhub:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: jiminaot/redash
+            context: .
+            dockerfile: Dockerfile
+            name: app
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          install: true
+
+      - name: Set version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
+
+      - run: echo ${{ steps.package-version.outputs.current-version }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ matrix.image }}
+          tags: debug-deployment-permissions
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.name }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
