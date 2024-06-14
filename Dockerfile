@@ -25,7 +25,8 @@ RUN yarn --frozen-lockfile --network-concurrency 1
 COPY --chown=redash client /frontend/client
 COPY --chown=redash webpack.config.js /frontend/
 # Use `yarn run` to ensure the locally installed webpack is used
-RUN yarn clean && yarn build:viz && NODE_OPTIONS="--max_old_space_size=4096 --openssl-legacy-provider" NODE_ENV=production yarn run webpack && mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html
+RUN yarn clean && yarn build:viz && NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production yarn run webpack && mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html
+
 
 # RUN yarn clean
 # RUN yarn build:viz
@@ -83,8 +84,8 @@ ARG POETRY_OPTIONS="--no-root --no-interaction --no-ansi"
 ARG install_groups="main,all_ds,dev"
 RUN /etc/poetry/bin/poetry install --only $install_groups $POETRY_OPTIONS
 
-COPY --chown=redash . /app
-COPY --from=frontend-builder --chown=redash /frontend/client/dist /app/client/dist
+COPY --chown=redash:redash . /app
+COPY --from=frontend-builder --chown=redash:redash /frontend/client/dist /app/client/dist
 RUN chown -R redash:redash /app
 RUN chmod -R +x /app
 USER redash
